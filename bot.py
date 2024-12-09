@@ -1,7 +1,12 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.constants import ParseMode  # Исправленный импорт
+import os
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from flask import Flask, request
 
+app = Flask(__name__)  # Инициализация Flask
+
+bot = Application.builder().token("8067977824:AAEUbQZxUJQNjS7Jo3HrpvS-b2fecjEcmKw").build()  # Токен вашего бота
 
 # Список вопросов и вариантов ответов
 questions = [
@@ -154,7 +159,13 @@ def get_result_text(category):
     # Возвращаем результат
     return results.get(category, {"image_url": "", "text": "Результат не определён. Вы уникальны!"})
 
-
+@app.route('/' + TOKEN, methods=['POST'])
+def webhook():
+    """Обрабатываем сообщения от бота через вебхук"""
+    json_str = request.get_data(as_text=True)
+    update = Update.de_json(json_str, bot)
+    bot.process_update(update)
+    return "OK"
 
 
 # Храним текущий вопрос для каждого пользователя
@@ -261,6 +272,10 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         level=logging.INFO,
     )
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))  # Используем переменную окружения PORT
+
+
 
     app = Application.builder().token("8067977824:AAEUbQZxUJQNjS7Jo3HrpvS-b2fecjEcmKw").build()
 
